@@ -2,8 +2,25 @@ import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 import rehypeExpressiveCode, {RehypeExpressiveCodeOptions} from 'rehype-expressive-code';
+import { pluginResolver } from './src/expressive/resolver';
 
-const expressiveCodeOptions: RehypeExpressiveCodeOptions = {}
+const expressiveCodeOptions: RehypeExpressiveCodeOptions = {
+  plugins: [
+    pluginResolver({
+      baseLocation: 'code/src',
+      resolvers: {
+        'java': 'main/java/net/ashwork/mc/examplemod/{0}.java',
+        'item_model': {
+          locations: [
+            'generated/resources/assets/{0}/items/{1}.json',
+            'main/resources/assets/{0}/items/{1}.json'
+          ],
+          separator: ':'
+        }
+      }
+    })
+  ]
+}
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
