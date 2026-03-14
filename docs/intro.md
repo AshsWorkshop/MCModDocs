@@ -20,6 +20,6 @@ Replacement java:
 
 Replacement reference:
 
-```java
+```json5
 ~>[item_model](examplemod:gold_speck)
 ```
