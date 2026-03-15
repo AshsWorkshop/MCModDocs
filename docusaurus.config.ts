@@ -17,7 +17,8 @@ const expressiveCodeOptions: RehypeExpressiveCodeOptions = {
           ],
           separator: ':'
         }
-      }
+      },
+      clipPrefix: '#>'
     })
   ]
 }

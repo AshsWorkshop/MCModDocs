@@ -3,7 +3,7 @@ import path from 'node:path';
 import * as fs from 'node:fs';
 
 const __DEFAULT_SEPARATOR: string = ',';
-const __REGEX: RegExp = /^~>\[([^\[\]\(\)]*)\]\(([^\[\]\(\)]+)\)$/;
+const __REGEX: RegExp = /^~>\[([^\[\]\(\) ]*)((?: [^\[\]\(\)= ]+=[^\[\]\(\)= ]+)*)\]\(([^\[\]\(\)]+)\)$/;
 
 export interface ResolverDefinition {
     // A path that defines the location relative to the base.
@@ -26,10 +26,42 @@ export interface PluginResolverOptions {
     referenceSeparator?: string;
     // A dictionary of resolvers to provider short references for.
     resolvers?: ResolverDictionary;
+    // Defines the clip identifier to check for.
+    // Any other clips with the specified prefix will be stripped.
+    clipPrefix?: string;
 }
 
 interface Resolutions {
     [index: number]: string[];
+}
+
+function clipText(text: string, data: string[], prefix?: string): string[] {
+    // Append prefix
+    text = (prefix ?? '') + text;
+    
+    const result: string[] = [];
+
+    let trimWhitespace: number = 0;
+    let pushData: boolean = false;
+    for (const [index, line] of data.entries()) {
+        let startIndex = -1;
+        if (line.includes(text)) {
+            pushData = !pushData;
+            startIndex = index;
+            trimWhitespace = line.search(/\S/);
+            trimWhitespace = trimWhitespace == -1 ? 0 : trimWhitespace;
+        }
+
+        if (prefix && line.includes(prefix)) {
+            continue;
+        }
+
+        if (pushData && startIndex != index) {
+            result.push(line.substring(trimWhitespace));
+        }
+    }
+
+    return result;
 }
 
 export function pluginResolver(options: PluginResolverOptions): ExpressiveCodePlugin {
@@ -44,7 +76,7 @@ export function pluginResolver(options: PluginResolverOptions): ExpressiveCodePl
                 for (const [index, line] of context.codeBlock.getLines().entries()) {
                     const match = line.text.match(__REGEX);
                     if (match) {
-                        const [_, resolver, reference] = match;
+                        const [_, resolver, meta, reference]  = match;
                         let locations: string[] = [reference];
 
                         // If the resolver is non-empty
@@ -68,9 +100,22 @@ export function pluginResolver(options: PluginResolverOptions): ExpressiveCodePl
                         for (const location of locations) {
                             let filePath = path.join(cwd, location);
                             if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-                                const data: string[] = fs.readFileSync(
+                                let data: string[] = fs.readFileSync(
                                     filePath, { encoding: 'utf-8' }
                                 ).trim().split('\n');
+
+                                // Compute meta to apply to data
+                                if (meta) {
+                                    const properties: string[] = meta.substring(1).split(' ');
+                                    for (const property of properties) {
+                                        const [propertyKey, propertyValue] = property.split('=');
+                                        if (propertyKey === 'clip-text') {
+                                            data = clipText(propertyValue, data, options.clipPrefix);
+                                        }
+                                    }
+                                }
+
+                                // Add resolution
                                 toResolve[index] = data;
 
                                 break;

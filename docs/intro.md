@@ -12,10 +12,16 @@ Normal json:
 }
 ```
 
-Replacement java:
+Replacement java with clip:
 
 ```java
-~>[](main/java/net/ashwork/mc/examplemod/ExampleMod.java)
+~>[ clip-text=main-mod-class](main/java/net/ashwork/mc/examplemod/ExampleMod.java)
+```
+
+Replacement clip with leading whitespace:
+
+```java
+~>[java clip-text=constructor](ExampleMod)
 ```
 
 Replacement reference:
