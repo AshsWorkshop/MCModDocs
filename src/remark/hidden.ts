@@ -1,6 +1,5 @@
 import type { Parent, Root, Node, Text, RootContent } from 'mdast';
 import { MdxJsxFlowElement } from 'mdast-util-mdx-jsx';
-import { valueToEstree } from 'estree-util-value-to-estree';
 
 export interface DefaultMap {
     [key: string]: string;
@@ -10,11 +9,17 @@ export interface HiddenTabOptions {
     defaults?: DefaultMap;
 }
 
-export function loadTabDisplays() {
+export function loadTabDisplays(params?: URLSearchParams) {
     for (let i = 0; i < localStorage.length; i++) {
         const key: string = localStorage.key(i);
         if (key.startsWith('hiddentab__key_')) {
             _switchTab(key, localStorage.getItem(key));
+        }
+    }
+
+    if (params) {
+        for (const [key, value] of params.entries()) {
+            switchTab(key, value);
         }
     }
 }
@@ -22,37 +27,31 @@ export function loadTabDisplays() {
 export function switchTab(key: string, value: string) {
     key = `hiddentab__key_${key}`;
     value = `hiddentab__value_${value}`;
-    _switchTab(key, value);
-    localStorage.setItem(key, value);
-}
-
-function _switchTab(key: string, value: string) {
-    for (const element of document.getElementsByClassName(key)) {
-        if (element instanceof HTMLElement) {
-            if (element.classList.contains(value)) {
-                element.style.removeProperty('display');
-            } else {
-                element.style.setProperty('display', 'none');
-            }
-        }
+    if (_switchTab(key, value)) {
+        localStorage.setItem(key, value);
     }
 }
 
-// function switchView(key, value) {
-//     for (const element of document.getElementsByClassName(`hiddentab__${key}`)) {
-//         if (element.classList.contains(value)) {
-//       element.style.removeProperty('display');
-//     } else {
-//       element.style.setProperty('display', 'none');
-//     }
-//   }
-// } 
+function _switchTab(key: string, value: string): boolean {
+    if (!key.match(/^[A-Za-z0-9\-_]+$/) || !value.match(/^[A-Za-z0-9\-_]+$/)) return false;
+
+    let elementToSwitch: boolean = false;
+    for (const element of document.getElementsByClassName(key)) {
+        elementToSwitch = true;
+        if (element.classList.contains(value)) {
+            element.classList.remove('hiddentab__hidden')
+        } else if (!element.classList.contains('hiddentab__hidden')) {
+            element.classList.add('hiddentab__hidden');
+        }
+    }
+    return elementToSwitch;
+}
 
 export default function remarkHiddenTabs(options?: HiddenTabOptions) {
 
     function checkForReplacement(element: Text, parent: Parent, divStack: [MdxJsxFlowElement, Parent][]): boolean {
         // If child is text, check for matching string
-        const match: RegExpMatchArray = element.value.match(/(\^|\$)tab(?: ([^ ]+) ([^ ]+))?/);
+        const match: RegExpMatchArray = element.value.match(/(\^|\$)tab(?: ([A-Za-z0-9\-_]+) ([A-Za-z0-9\-_]+))?/);
         if (match) {
             const [_, markerType, group, value] = match;
 
@@ -67,38 +66,17 @@ export default function remarkHiddenTabs(options?: HiddenTabOptions) {
                 };
 
                 // Add class attribute
+                const attributes: string[] = []
+                attributes.push(`hiddentab__key_${group}`);
+                attributes.push(`hiddentab__value_${value}`);
+                if (!(options.defaults && group in options.defaults && options.defaults[group] === value)) {
+                    attributes.push('hiddentab__hidden');
+                }
                 div.attributes.push({
                     type: 'mdxJsxAttribute',
-                    name: 'class',
-                    value: `hiddentab__key_${group} hiddentab__value_${value}`
+                    name: 'className',
+                    value: attributes.join(' ')
                 });
-
-                // Add hidden attribute
-                if (!(options.defaults && group in options.defaults && options.defaults[group] === value)) {
-                    const displayAttr: object = {
-                        display: 'none'
-                    };
-                    div.attributes.push({
-                        type: 'mdxJsxAttribute',
-                        name: 'style',
-                        value: {
-                            type: 'mdxJsxAttributeValueExpression',
-                            value: JSON.stringify(displayAttr),
-                            data: {
-                                estree: {
-                                    type: 'Program',
-                                    body: [
-                                        {
-                                            type: 'ExpressionStatement',
-                                            expression: valueToEstree(displayAttr)
-                                        }
-                                    ],
-                                    sourceType: 'module'
-                                }
-                            }
-                        },
-                    });
-                }
 
                 // Push div onto stack
                 divStack.push([div, parent]);
@@ -154,6 +132,6 @@ export default function remarkHiddenTabs(options?: HiddenTabOptions) {
     }
 
     return function (tree: Root) {
-        replaceHiddenTabs(tree, { value: 0 }, []);
+        replaceHiddenTabs(tree, []);
     }
 }

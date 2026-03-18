@@ -3,11 +3,11 @@
   "extends": "@docusaurus/tsconfig",
   "compilerOptions": {
     "baseUrl": ".",
-    "target": "es6",
+    "target": "es2022",
     "lib": [
       "DOM",
       "DOM.Iterable",
-      "ES6"
+      "ES2022"
     ],
     "types": [
       "node"

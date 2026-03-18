@@ -87,6 +87,10 @@ const config: Config = {
     ],
   ],
 
+  clientModules: [
+    require.resolve('./src/remark/module.ts')
+  ],
+
   themeConfig: {
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
