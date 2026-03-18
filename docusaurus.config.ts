@@ -3,6 +3,7 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 import rehypeExpressiveCode, {RehypeExpressiveCodeOptions} from 'rehype-expressive-code';
 import { pluginResolver } from './src/expressive/resolver';
+import remarkHiddenTabs, { HiddenTabOptions } from './src/remark/hidden';
 
 const expressiveCodeOptions: RehypeExpressiveCodeOptions = {
   plugins: [
@@ -21,6 +22,12 @@ const expressiveCodeOptions: RehypeExpressiveCodeOptions = {
       clipPrefix: '#>'
     })
   ]
+}
+
+const hiddenTabOptions: HiddenTabOptions = {
+  defaults: {
+    'code': 'simple'
+  }
 }
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
@@ -66,6 +73,9 @@ const config: Config = {
           // Remove this to remove the "edit this page" links.
           // editUrl:
           //   'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/'
+          remarkPlugins: [
+            [remarkHiddenTabs, hiddenTabOptions]
+          ],
           rehypePlugins: [
             [rehypeExpressiveCode, expressiveCodeOptions]
           ]

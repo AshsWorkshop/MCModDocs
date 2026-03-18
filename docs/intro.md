@@ -12,11 +12,17 @@ Normal json:
 }
 ```
 
+^tab code simple
+
 Replacement java with clip:
 
 ```java
 ~>[ clip-text=main-mod-class](main/java/net/ashwork/mc/examplemod/ExampleMod.java)
 ```
+
+$tab
+
+^tab code clip
 
 Replacement clip with leading whitespace:
 
@@ -24,8 +30,14 @@ Replacement clip with leading whitespace:
 ~>[java clip-text=constructor](ExampleMod)
 ```
 
+$tab 
+
+^tab code reference
+
 Replacement reference:
 
 ```json5
 ~>[item_model](examplemod:gold_speck)
 ```
+
+$tab
