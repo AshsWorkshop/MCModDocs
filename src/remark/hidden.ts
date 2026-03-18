@@ -10,6 +10,34 @@ export interface HiddenTabOptions {
     defaults?: DefaultMap;
 }
 
+export function loadTabDisplays() {
+    for (let i = 0; i < localStorage.length; i++) {
+        const key: string = localStorage.key(i);
+        if (key.startsWith('hiddentab__key_')) {
+            _switchTab(key, localStorage.getItem(key));
+        }
+    }
+}
+
+export function switchTab(key: string, value: string) {
+    key = `hiddentab__key_${key}`;
+    value = `hiddentab__value_${value}`;
+    _switchTab(key, value);
+    localStorage.setItem(key, value);
+}
+
+function _switchTab(key: string, value: string) {
+    for (const element of document.getElementsByClassName(key)) {
+        if (element instanceof HTMLElement) {
+            if (element.classList.contains(value)) {
+                element.style.removeProperty('display');
+            } else {
+                element.style.setProperty('display', 'none');
+            }
+        }
+    }
+}
+
 // function switchView(key, value) {
 //     for (const element of document.getElementsByClassName(`hiddentab__${key}`)) {
 //         if (element.classList.contains(value)) {
@@ -42,7 +70,7 @@ export default function remarkHiddenTabs(options?: HiddenTabOptions) {
                 div.attributes.push({
                     type: 'mdxJsxAttribute',
                     name: 'class',
-                    value: `hiddentab__${group} ${value}`
+                    value: `hiddentab__key_${group} hiddentab__value_${value}`
                 });
 
                 // Add hidden attribute
