@@ -2,33 +2,51 @@ import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 import rehypeExpressiveCode, {RehypeExpressiveCodeOptions} from 'rehype-expressive-code';
-import { pluginResolver } from './src/expressive/resolver';
+import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers';
+import { pluginResolver, PluginResolverOptions } from './src/expressive/resolver';
 import remarkHiddenTabs, { HiddenTabOptions } from './src/remark/hidden';
+
+const resolverOptions: PluginResolverOptions = {
+  baseLocation: 'code/src',
+  resolvers: {
+    'java': {
+      locations: [
+        'main/java/net/ashwork/mc/examplemod/{0}.java'
+      ],
+      replacements: {
+        '.': '/'
+      }
+    }
+  },
+  clipPrefix: '#>'
+}
+
+const assetRefs: {[ref: string]: string} = {
+  'item_model': 'items',
+  'lang': 'lang'
+};
+for (const [ref, directory] of Object.entries(assetRefs)) {
+  resolverOptions.resolvers[ref] = {
+    locations: [
+      `generated/resources/assets/{0}/${directory}/{1}.json`,
+      `main/resources/assets/{0}/${directory}/{1}.json`
+    ],
+    separator: ':'
+  }
+}
 
 const expressiveCodeOptions: RehypeExpressiveCodeOptions = {
   plugins: [
-    pluginResolver({
-      baseLocation: 'code/src',
-      resolvers: {
-        'java': 'main/java/net/ashwork/mc/examplemod/{0}.java',
-        'item_model': {
-          locations: [
-            'generated/resources/assets/{0}/items/{1}.json',
-            'main/resources/assets/{0}/items/{1}.json'
-          ],
-          separator: ':'
-        }
-      },
-      clipPrefix: '#>'
-    })
+    pluginResolver(resolverOptions),
+    pluginLineNumbers()
   ]
-}
+};
 
 const hiddenTabOptions: HiddenTabOptions = {
   defaults: {
     'code': 'simple'
   }
-}
+};
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 

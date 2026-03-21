@@ -17,6 +17,7 @@
   "dependencies": {
     "@docusaurus/core": "3.9.2",
     "@docusaurus/preset-classic": "3.9.2",
+    "@expressive-code/plugin-line-numbers": "^0.41.7",
     "@mdx-js/react": "^3.0.0",
     "clsx": "^2.0.0",
     "mdast-util-mdx-jsx": "^3.2.0",
